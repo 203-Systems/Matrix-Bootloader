@@ -25,6 +25,12 @@
 #include "soc/cpu.h"
 #include "hal/gpio_ll.h"
 
+#ifdef CONFIG_IDF_TARGET_ESP32S2
+  #include "esp32s2/rom/gpio.h"
+#elif CONFIG_IDF_TARGET_ESP32S3
+  #include "esp32s3/rom/gpio.h"
+#endif
+
 // Specific board header specified with -DBOARD=
 #include "board.h"
 
@@ -208,7 +214,9 @@ static int selected_boot_partition(const bootloader_state_t *bs)
         // during this time. If yes then to load uf2 "bootloader".
         if ( boot_index != FACTORY_INDEX )
         {
+#ifndef FASTBOOT
           board_led_on();
+#endif
 
 #ifdef PIN_DOUBLE_RESET_RC
           // Double reset detect if board implements 1-bit memory with RC components
@@ -230,19 +238,30 @@ static int selected_boot_partition(const bootloader_state_t *bs)
           {
             esp_rom_gpio_pad_select_gpio(PIN_BUTTON_UF2);
             PIN_INPUT_ENABLE(GPIO_PIN_MUX_REG[PIN_BUTTON_UF2]);
-            esp_rom_gpio_pad_pullup_only(PIN_BUTTON_UF2);
-
+            #ifdef BUTTON_ACTIVE_HIGH
+            gpio_pad_pulldown(PIN_BUTTON_UF2);
+            #else
+            gpio_pad_pullup(PIN_BUTTON_UF2);
+            #endif
+#ifndef FASTBOOT
             uint32_t tm_start = esp_log_early_timestamp();
             while (UF2_DETECTION_DELAY_MS > (esp_log_early_timestamp() - tm_start) )
             {
+#endif
+              #ifdef BUTTON_ACTIVE_HIGH
+              if ( gpio_ll_get_level(&GPIO, PIN_BUTTON_UF2) == 1 )
+              #else
               if ( gpio_ll_get_level(&GPIO, PIN_BUTTON_UF2) == 0 )
+              #endif
               {
                 ESP_LOGI(TAG, "Detect GPIO %d active to enter UF2 bootloader", PIN_BUTTON_UF2);
 
                 // Simply return factory index without erasing any other partition
                 boot_index = FACTORY_INDEX;
+#ifndef FASTBOOT //Wrong indent but this includes the break
                 break;
               }
+#endif
             }
           }
 
@@ -251,7 +270,9 @@ static int selected_boot_partition(const bootloader_state_t *bs)
           gpio_ll_output_disable(&GPIO, PIN_DOUBLE_RESET_RC);
 #endif
 
+#ifndef FASTBOOT
           board_led_off();
+#endif
         }
 
         // Customer implementation.
