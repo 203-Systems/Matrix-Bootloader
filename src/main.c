@@ -219,6 +219,10 @@ static uint8_t _indicator_rgb[3];
 
 void indicator_set(uint32_t state)
 {
+  #ifdef CUSTOM_LED
+  board_rgb_state(state);
+  return;
+  #else
   _indicator_state = state;
   switch(state)
   {
@@ -246,8 +250,10 @@ void indicator_set(uint32_t state)
 
     default: break; // nothing to do
   }
+  #endif
 }
 
+#ifndef CUSTOM_LED
 void board_timer_handler(void)
 {
   _timer_count++;
@@ -285,6 +291,7 @@ void board_timer_handler(void)
     default: break; // nothing to do
   }
 }
+#endif
 
 //--------------------------------------------------------------------+
 // Logger newlib retarget

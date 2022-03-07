@@ -50,7 +50,7 @@ static esp_timer_handle_t timer_hdl;
 
 #ifdef NEOPIXEL_PIN
 #include "led_strip.h"
-static led_strip_t *strip;
+led_strip_t *strip;
 #endif
 
 #ifdef DOTSTAR_PIN_DATA

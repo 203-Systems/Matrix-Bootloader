@@ -1,4 +1,10 @@
-idf_component_register(SRCS boards.c board_flash.c
+file(GLOB DEVICE_SRC
+  "${BOARD}/*.c"
+)
+
+message(STATUS "Device SRC ${DEVICE_SRC}")
+
+idf_component_register(SRCS boards.c board_flash.c ${DEVICE_SRC}
                        INCLUDE_DIRS "." "${BOARD}"
                        #PRIV_REQUIRES "driver"
                        REQUIRES app_update spi_flash led_strip lcd)
