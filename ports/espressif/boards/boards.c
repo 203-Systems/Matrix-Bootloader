@@ -194,7 +194,7 @@ void board_init(void)
   // WS2812 Neopixel driver with RMT peripheral
   rmt_config_t config = RMT_DEFAULT_CONFIG_TX(NEOPIXEL_PIN, RMT_CHANNEL_0);
   config.clk_div = 2; // set counter clock to 40MHz
-  config.mem_block_num = 3;
+  config.mem_block_num = 4;
 
   rmt_config(&config);
   rmt_driver_install(config.channel, 0, 0);
