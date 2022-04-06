@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef ADAFRUIT_QTPY_S3_H_
-#define ADAFRUIT_QTPY_S3_H_
+#ifndef BANANAPI_BPI_LEAF_S2_H_
+#define BANANAPI_BPI_LEAF_S2_H_
 
 //--------------------------------------------------------------------+
 // Button
@@ -36,20 +36,18 @@
 
 // GPIO that implement 1-bit memory with RC components which hold the
 // pin value long enough for double reset detection.
-#define PIN_DOUBLE_RESET_RC   10
+// #define PIN_DOUBLE_RESET_RC
 
 //--------------------------------------------------------------------+
 // LED
 //--------------------------------------------------------------------+
 
 // GPIO connected to Neopixel data
-#define NEOPIXEL_PIN          39
-
-#define NEOPIXEL_POWER_PIN    38
-#define NEOPIXEL_POWER_STATE  1
+#define NEOPIXEL_PIN          18
 
 // Brightness percentage from 1 to 255
 #define NEOPIXEL_BRIGHTNESS   0x10
+#define NEOPIXEL_RESET_DELAY  ns2cycle(400*1000)
 
 // Number of neopixels
 #define NEOPIXEL_NUMBER       1
@@ -64,17 +62,14 @@
 // USB UF2
 //--------------------------------------------------------------------+
 
-#define USB_VID                  0x239A
-#define USB_PID                  0x0119
+#define USB_VID           0x303A
+#define USB_PID           0x80E1
+#define USB_MANUFACTURER  "Banana Pi"
+#define USB_PRODUCT       "BPI-Leaf-S2"
 
-#define USB_MANUFACTURER         "Adafruit"
-#define USB_PRODUCT              "QT Py ESP32-S3"
-
-#define UF2_PRODUCT_NAME         USB_MANUFACTURER " " USB_PRODUCT
-#define UF2_BOARD_ID             "ESP32S3-QTPy-A"
-#define UF2_VOLUME_LABEL         "QTPYS3BOOT"
-#define UF2_INDEX_URL            "https://adafruit.com/product/5426" 
-
-#define TINYUF2_FAVICON_HEADER   "favicon_adafruit_256.h"
+#define UF2_PRODUCT_NAME  USB_MANUFACTURER " " USB_PRODUCT
+#define UF2_BOARD_ID      "ESP32S2-BPI-Leaf-S2"
+#define UF2_VOLUME_LABEL  "LEAFS2BOOT"
+#define UF2_INDEX_URL     "https://banana-pi.org/"
 
 #endif

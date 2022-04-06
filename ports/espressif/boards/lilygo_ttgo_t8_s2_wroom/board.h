@@ -1,7 +1,7 @@
 /* 
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Ha Thach (tinyusb.org) for Adafruit Industries
+ * Copyright (c) 2022 Fabian Affolter <fabian@affolter-engineering.ch>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef ADAFRUIT_QTPY_S3_H_
-#define ADAFRUIT_QTPY_S3_H_
+#pragma once
 
 //--------------------------------------------------------------------+
 // Button
@@ -34,47 +33,17 @@
 // reset since that will instead run the 1st stage ROM bootloader
 #define PIN_BUTTON_UF2        0
 
-// GPIO that implement 1-bit memory with RC components which hold the
-// pin value long enough for double reset detection.
-#define PIN_DOUBLE_RESET_RC   10
-
-//--------------------------------------------------------------------+
-// LED
-//--------------------------------------------------------------------+
-
-// GPIO connected to Neopixel data
-#define NEOPIXEL_PIN          39
-
-#define NEOPIXEL_POWER_PIN    38
-#define NEOPIXEL_POWER_STATE  1
-
-// Brightness percentage from 1 to 255
-#define NEOPIXEL_BRIGHTNESS   0x10
-
-// Number of neopixels
-#define NEOPIXEL_NUMBER       1
-
-
-// LED for indicator
-// If not defined neopixel will be use for flash writing instead
-// #define LED_PIN               42
-// #define LED_STATE_ON          1
-
 //--------------------------------------------------------------------+
 // USB UF2
 //--------------------------------------------------------------------+
 
-#define USB_VID                  0x239A
-#define USB_PID                  0x0119
+#define USB_VID           0x303A            // Espressif VID
+#define USB_PID           0x80EB            // Espressif assigned PID
+#define USB_MANUFACTURER  "LILYGO"
+#define USB_PRODUCT       "TTGO_T8_S2_WROOM"
 
-#define USB_MANUFACTURER         "Adafruit"
-#define USB_PRODUCT              "QT Py ESP32-S3"
+#define UF2_PRODUCT_NAME  USB_MANUFACTURER " " USB_PRODUCT
+#define UF2_BOARD_ID      "ESP32S2-TTGOS2-WROOM-v1.1"
+#define UF2_VOLUME_LABEL  "TTGOS2BOOT"
+#define UF2_INDEX_URL     "http://www.lilygo.cn/prod_view.aspx?TypeId=50063&Id=1320&FId=t3:50063:3"
 
-#define UF2_PRODUCT_NAME         USB_MANUFACTURER " " USB_PRODUCT
-#define UF2_BOARD_ID             "ESP32S3-QTPy-A"
-#define UF2_VOLUME_LABEL         "QTPYS3BOOT"
-#define UF2_INDEX_URL            "https://adafruit.com/product/5426" 
-
-#define TINYUF2_FAVICON_HEADER   "favicon_adafruit_256.h"
-
-#endif
