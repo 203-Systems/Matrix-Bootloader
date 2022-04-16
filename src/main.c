@@ -253,9 +253,11 @@ void indicator_set(uint32_t state)
   #endif
 }
 
-#ifndef CUSTOM_LED
 void board_timer_handler(void)
 {
+  #ifdef CUSTOM_LED
+  animation_handler();
+  #else
   _timer_count++;
 
   switch (_indicator_state)
@@ -290,8 +292,8 @@ void board_timer_handler(void)
 
     default: break; // nothing to do
   }
+  #endif
 }
-#endif
 
 //--------------------------------------------------------------------+
 // Logger newlib retarget

@@ -104,6 +104,10 @@ void board_timer_stop(void);
 // timer event handler, must be called by port/board
 extern void board_timer_handler(void);
 
+#ifdef CUSTOM_LED
+void animation_handler(void);
+#endif
+
 // Check if application is valid
 bool board_app_valid(void);
 
