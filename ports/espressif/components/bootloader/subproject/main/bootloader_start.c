@@ -243,6 +243,7 @@ static int selected_boot_partition(const bootloader_state_t *bs)
             #else
             gpio_pad_pullup(PIN_BUTTON_UF2);
             #endif
+            for(volatile uint16_t i = 0; i < 100; i++){} //Add small delay
 #ifndef FASTBOOT
             uint32_t tm_start = esp_log_early_timestamp();
             while (UF2_DETECTION_DELAY_MS > (esp_log_early_timestamp() - tm_start) )
@@ -253,7 +254,7 @@ static int selected_boot_partition(const bootloader_state_t *bs)
               #else
               if ( gpio_ll_get_level(&GPIO, PIN_BUTTON_UF2) == 0 )
               #endif
-              {
+                {
                 ESP_LOGI(TAG, "Detect GPIO %d active to enter UF2 bootloader", PIN_BUTTON_UF2);
 
                 // Simply return factory index without erasing any other partition
