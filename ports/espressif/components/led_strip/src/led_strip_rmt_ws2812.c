@@ -41,6 +41,9 @@ static uint32_t ws2812_t0h_ticks = 0;
 static uint32_t ws2812_t1h_ticks = 0;
 static uint32_t ws2812_t0l_ticks = 0;
 static uint32_t ws2812_t1l_ticks = 0;
+static uint32_t ws2812_reset_ticks = 0;
+
+static rmt_item32_t* rmtBuffer;
 
 typedef struct {
     led_strip_t parent;
@@ -62,37 +65,58 @@ typedef struct {
  * @param[out] translated_size: number of source data that got converted
  * @param[out] item_num: number of RMT items which are converted from source data
  */
-static void IRAM_ATTR ws2812_rmt_adapter(const void *src, rmt_item32_t *dest, size_t src_size,
-        size_t wanted_num, size_t *translated_size, size_t *item_num)
-{
-    if (src == NULL || dest == NULL) {
-        *translated_size = 0;
-        *item_num = 0;
-        return;
-    }
-    const rmt_item32_t bit0 = {{{ ws2812_t0h_ticks, 1, ws2812_t0l_ticks, 0 }}}; //Logical 0
-    const rmt_item32_t bit1 = {{{ ws2812_t1h_ticks, 1, ws2812_t1l_ticks, 0 }}}; //Logical 1
-    size_t size = 0;
-    size_t num = 0;
-    uint8_t *psrc = (uint8_t *)src;
-    rmt_item32_t *pdest = dest;
-    while (size < src_size && num < wanted_num) {
-        for (int i = 0; i < 8; i++) {
-            // MSB first
-            if (*psrc & (1 << (7 - i))) {
-                pdest->val =  bit1.val;
-            } else {
-                pdest->val =  bit0.val;
+// static void IRAM_ATTR ws2812_rmt_adapter(const void *src, rmt_item32_t *dest, size_t src_size,
+//         size_t wanted_num, size_t *translated_size, size_t *item_num)
+// {
+//     if (src == NULL || dest == NULL) {
+//         *translated_size = 0;
+//         *item_num = 0;
+//         return;
+//     }
+//     const rmt_item32_t bit0 = {{{ ws2812_t0h_ticks, 1, ws2812_t0l_ticks, 0 }}}; //Logical 0
+//     const rmt_item32_t bit1 = {{{ ws2812_t1h_ticks, 1, ws2812_t1l_ticks, 0 }}}; //Logical 1
+
+//     size_t size = 0;
+//     size_t num = 0;
+//     uint8_t *psrc = (uint8_t *)src;
+//     rmt_item32_t *pdest = dest;
+//     while (size < src_size && num < wanted_num) {
+//         for (int i = 0; i < 8; i++) {
+//             // MSB first
+//             if (*psrc & (1 << (7 - i))) {
+//                 pdest->val =  bit1.val;
+//             } else {
+//                 pdest->val =  bit0.val;
+//             }
+//             num++;
+//             pdest++;
+//         }
+//         size++;
+//         psrc++;
+//     }
+//     *translated_size = size;
+//     *item_num = num;
+// }
+
+//203's Implentmation
+static void setup_rmt_data_buffer(uint8_t *array, uint32_t numsOfLED) 
+    {
+        const rmt_item32_t bit0 = {{{ ws2812_t0h_ticks, 1, ws2812_t0l_ticks, 0 }}}; //Logical 0
+        const rmt_item32_t bit1 = {{{ ws2812_t1h_ticks, 1, ws2812_t1l_ticks, 0 }}}; //Logical 1
+        const rmt_item32_t reset = {{{ ws2812_reset_ticks, 0, 0, 0 }}}; //Reset
+        // rmtBuffer[0] = reset;
+        for (uint16_t led = 0; led < numsOfLED; led++) {
+            // ESP_LOGV("RMT", "LED %d", led);
+            uint32_t bits_to_send = (array[led * 3] << 16) + (array[led * 3 + 1] << 8) + array[led * 3 + 2];
+            uint32_t mask = 1 << (24 - 1);
+            for (uint32_t bit = 0; bit < 24; bit++) {
+            uint32_t bit_is_set = bits_to_send & mask;
+            rmtBuffer[led * 24 + bit] = bit_is_set ? bit1 : bit0;
+            mask >>= 1;
             }
-            num++;
-            pdest++;
         }
-        size++;
-        psrc++;
+        rmtBuffer[numsOfLED * 24] = reset;
     }
-    *translated_size = size;
-    *item_num = num;
-}
 
 static esp_err_t ws2812_set_pixel(led_strip_t *strip, uint32_t index, uint32_t red, uint32_t green, uint32_t blue)
 {
@@ -122,10 +146,8 @@ static esp_err_t ws2812_refresh(led_strip_t *strip, uint32_t timeout_ms)
 {
     esp_err_t ret = ESP_OK;
     ws2812_t *ws2812 = __containerof(strip, ws2812_t, parent);
-    STRIP_CHECK(rmt_write_sample(ws2812->rmt_channel, ws2812->buffer, ws2812->strip_len * 3, true) == ESP_OK,
-                "transmit RMT samples failed", err, ESP_FAIL);
-    return rmt_wait_tx_done(ws2812->rmt_channel, pdMS_TO_TICKS(timeout_ms));
-err:
+    setup_rmt_data_buffer(ws2812->buffer, ws2812->strip_len);
+    rmt_write_items(ws2812->rmt_channel, rmtBuffer, ws2812->strip_len * 24 + 1, true);
     return ret;
 }
 
@@ -171,9 +193,10 @@ led_strip_t *led_strip_new_rmt_ws2812(const led_strip_config_t *config)
     ws2812_t0l_ticks = (uint32_t)(ratio * WS2812_T0L_NS);
     ws2812_t1h_ticks = (uint32_t)(ratio * WS2812_T1H_NS);
     ws2812_t1l_ticks = (uint32_t)(ratio * WS2812_T1L_NS);
+    ws2812_reset_ticks = (uint32_t)(ratio * WS2812_RESET_US * 1000);
 
     // set ws2812 to rmt adapter
-    rmt_translator_init((rmt_channel_t)config->dev, ws2812_rmt_adapter);
+    // rmt_translator_init((rmt_channel_t)config->dev, ws2812_rmt_adapter);
 
     ws2812->rmt_channel = (rmt_channel_t)config->dev;
     ws2812->strip_len = config->max_leds;
@@ -184,6 +207,8 @@ led_strip_t *led_strip_new_rmt_ws2812(const led_strip_config_t *config)
     ws2812->parent.clear = ws2812_clear;
     ws2812->parent.del = ws2812_del;
     ws2812->parent.set_brightness = ws2812_set_brightness;
+
+    rmtBuffer = (rmt_item32_t*)calloc(config->max_leds * 24 + 1, sizeof(rmt_item32_t));
 
     return &ws2812->parent;
 err:
