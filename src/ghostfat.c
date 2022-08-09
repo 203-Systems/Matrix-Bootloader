@@ -144,7 +144,7 @@ const char infoUf2File[] =
 #endif
     "Model: " UF2_PRODUCT_NAME "\r\n"
     "Board-ID: " UF2_BOARD_ID "\r\n"
-    "Date: " COMPILE_DATE "\r\n";
+    "Build Date: " COMPILE_DATE "\r\n";
 
 const char indexFile[] =
     "<!doctype html>\n"
