@@ -197,7 +197,7 @@ void board_init(void)
   config.mem_block_num = 4;
 
   rmt_config(&config);
-  rmt_driver_install(config.channel, 0, 0);
+  rmt_driver_install(config.channel, 0, ESP_INTR_FLAG_IRAM);
 
   led_strip_config_t strip_config = LED_STRIP_DEFAULT_CONFIG(NEOPIXEL_NUMBER, (led_strip_dev_t) config.channel);
   strip = led_strip_new_rmt_ws2812(&strip_config);
