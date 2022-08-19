@@ -236,6 +236,12 @@ static int selected_boot_partition(const bootloader_state_t *bs)
 
           if ( boot_index != FACTORY_INDEX )
           {
+#ifdef PIN_BUTTON_ENABLE
+            esp_rom_gpio_pad_select_gpio(PIN_BUTTON_ENABLE);
+            gpio_ll_input_disable(&GPIO, PIN_BUTTON_ENABLE);
+            gpio_ll_output_enable(&GPIO, PIN_BUTTON_ENABLE);
+            gpio_ll_set_level(&GPIO, PIN_BUTTON_ENABLE, 1);
+#endif
             esp_rom_gpio_pad_select_gpio(PIN_BUTTON_UF2);
             PIN_INPUT_ENABLE(GPIO_PIN_MUX_REG[PIN_BUTTON_UF2]);
             #ifdef BUTTON_ACTIVE_HIGH
