@@ -26,26 +26,23 @@ set(EXTRA_COMPONENT_DIRS "${TOP}/src" boards)
 set(SDKCONFIG_DEFAULTS sdkconfig.defaults boards/${BOARD}/sdkconfig)
 set(SDKCONFIG ${CMAKE_BINARY_DIR}/sdkconfig)
 
-message(SDKCONFIG_DEFAULTS "${SDKCONFIG_DEFAULTS}")
-message(SDKCONFIG "${SDKCONFIG}")
-
-
-
-
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
-execute_process(COMMAND git describe --dirty --always --tags
-                OUTPUT_VARIABLE GIT_VERSION
-                ERROR_QUIET)
+execute_process(COMMAND git describe --always --tags
+                OUTPUT_VARIABLE GIT_VERSION)
 string(STRIP ${GIT_VERSION} GIT_VERSION)
 
 execute_process(COMMAND bash "-c" "git submodule status ${TOP}/lib/esp-idf ${TOP}/lib/tinyusb | cut -d\" \" -f3,4 | paste -s -d\" \" -"
-                OUTPUT_VARIABLE GIT_SUBMODULE_VERSIONS
-                ERROR_QUIET)
-string(REPLACE ../../../../lib/ "" GIT_SUBMODULE_VERSIONS ${GIT_SUBMODULE_VERSIONS})
-string(STRIP ${GIT_SUBMODULE_VERSIONS} GIT_SUBMODULE_VERSIONS)
+                OUTPUT_VARIABLE GIT_SUBMODULE_VERSIONS)
+
+message(SDKCONFIG "${SDKCONFIG}")
+
+# string(REPLACE ../../../../lib/ "" GIT_SUBMODULE_VERSIONS ${GIT_SUBMODULE_VERSIONS})
+# string(STRIP ${GIT_SUBMODULE_VERSIONS} GIT_SUBMODULE_VERSIONS)
+
 
 add_compile_definitions(UF2_VERSION_BASE="${GIT_VERSION}")
-add_compile_definitions(UF2_VERSION="${GIT_VERSION} - ${GIT_SUBMODULE_VERSIONS}")
+# add_compile_definitions(UF2_VERSION="${GIT_VERSION} - ${GIT_SUBMODULE_VERSIONS}")
+add_compile_definitions(UF2_VERSION="${GIT_VERSION}")
 
 project(tinyuf2)
